@@ -31,25 +31,47 @@ router.get('/:id', async (req, res) => {
 // POST /api/events - Create new event (Organizer/Admin)
 router.post('/', verifyAuth, requireRoles(['organizer', 'admin']), async (req, res) => {
   try {
-    const { title, category, catLabel, dateTime, venue, seatCap, desc, department, tags, bannerUrl } = req.body;
+    let { title, category, catLabel, dateTime, venue, seatCap, desc, department, tags, bannerUrl } = req.body;
 
-    if (!title || !category || !dateTime || !venue || !seatCap) {
-      return res.status(400).json({ message: 'Title, category, dateTime, venue, and seatCap are required.' });
+    if (!title || !category || !dateTime || !venue || seatCap === undefined) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Title, category, date/time, venue, and seat capacity are all required.' 
+      });
+    }
+
+    const parsedCap = parseInt(seatCap, 10);
+    if (isNaN(parsedCap) || parsedCap < 1) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Seat capacity must be an integer greater than 0.' 
+      });
+    }
+
+    title = String(title).trim();
+    venue = String(venue).trim();
+    dateTime = String(dateTime).trim();
+
+    if (title.length < 3) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Event title must be at least 3 characters long.' 
+      });
     }
 
     const event = await dbService.createEvent({
       title,
       category,
-      catLabel: catLabel || (category === 'fest' ? 'Tech Fest' : category === 'workshop' ? 'Workshop' : category === 'talk' ? 'Guest Talk' : 'Event'),
+      catLabel: catLabel || (category === 'fest' ? 'Tech Fest' : category === 'workshop' ? 'Workshop' : category === 'talk' ? 'Guest Talk' : category === 'sports' ? 'Sports' : 'Cultural Fest'),
       dateTime,
       venue,
-      seatCap: Number(seatCap),
-      desc: desc || '',
+      seatCap: parsedCap,
+      desc: desc ? String(desc).trim() : '',
       department: department || req.user.department || 'School of CSE',
       organizerId: req.user._id || req.user.id,
       organizerName: req.user.name,
       bannerUrl: bannerUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80',
-      tags: tags || [category]
+      tags: Array.isArray(tags) ? tags : [category]
     });
 
     // Real-time broadcast to all clients via Socket.IO
@@ -65,17 +87,50 @@ router.post('/', verifyAuth, requireRoles(['organizer', 'admin']), async (req, r
 
     res.status(201).json(event);
   } catch (err) {
-    res.status(500).json({ message: 'Error creating event', error: err.message });
+    res.status(500).json({ success: false, message: 'Error creating event', error: err.message });
   }
 });
 
-// PUT /api/events/:id - Update event details or capacity (Organizer/Admin)
+// PUT /api/events/:id - Update event details or capacity (Organizer with ownership OR Admin)
 router.put('/:id', verifyAuth, requireRoles(['organizer', 'admin']), async (req, res) => {
   try {
-    const updated = await dbService.updateEvent(req.params.id, req.body);
-    if (!updated) {
-      return res.status(404).json({ message: 'Event not found' });
+    const existing = await dbService.getEventById(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Event not found.' });
     }
+
+    // Role-based ownership check: Organizers can only edit events they created
+    const userId = String(req.user._id || req.user.id);
+    const isOwner = existing.organizerId ? String(existing.organizerId) === userId : true;
+    if (req.user.role === 'organizer' && !isOwner) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden: Club organizers can only modify events created by their own club/profile.'
+      });
+    }
+
+    const updates = { ...req.body };
+
+    // Validate seat capacity adjustments
+    if (updates.seatCap !== undefined) {
+      const newCap = parseInt(updates.seatCap, 10);
+      if (isNaN(newCap) || newCap < 1) {
+        return res.status(400).json({ success: false, message: 'Seat capacity must be an integer greater than 0.' });
+      }
+
+      const bookedCount = (existing.seatCap || 0) - (existing.seatsLeft || 0);
+      if (newCap < bookedCount) {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot decrease capacity to ${newCap}. Already ${bookedCount} students have booked tickets.`
+        });
+      }
+
+      updates.seatCap = newCap;
+      updates.seatsLeft = newCap - bookedCount;
+    }
+
+    const updated = await dbService.updateEvent(req.params.id, updates);
 
     const io = req.app.get('io');
     if (io) {
@@ -90,23 +145,43 @@ router.put('/:id', verifyAuth, requireRoles(['organizer', 'admin']), async (req,
 
     res.json(updated);
   } catch (err) {
-    res.status(500).json({ message: 'Error updating event', error: err.message });
+    res.status(500).json({ success: false, message: 'Error updating event', error: err.message });
   }
 });
 
-// DELETE /api/events/:id - Delete event (Organizer/Admin)
+// DELETE /api/events/:id - Delete event (Organizer with ownership OR Admin)
 router.delete('/:id', verifyAuth, requireRoles(['organizer', 'admin']), async (req, res) => {
   try {
+    const existing = await dbService.getEventById(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Event not found.' });
+    }
+
+    // Role-based ownership check
+    const userId = String(req.user._id || req.user.id);
+    const isOwner = existing.organizerId ? String(existing.organizerId) === userId : true;
+    if (req.user.role === 'organizer' && !isOwner) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden: Club organizers can only delete events created by their own club/profile.'
+      });
+    }
+
     await dbService.deleteEvent(req.params.id);
 
     const io = req.app.get('io');
     if (io) {
       io.emit('event:deleted', { eventId: req.params.id });
+      io.emit('activity:feed', {
+        type: 'event_deleted',
+        text: `Event cancelled/removed: "${existing.title}"`,
+        timestamp: new Date().toISOString()
+      });
     }
 
-    res.json({ message: 'Event deleted successfully' });
+    res.json({ success: true, message: 'Event and associated passes deleted successfully.' });
   } catch (err) {
-    res.status(500).json({ message: 'Error deleting event', error: err.message });
+    res.status(500).json({ success: false, message: 'Error deleting event', error: err.message });
   }
 });
 

@@ -130,6 +130,16 @@ const startServer = async () => {
       await runSeed();
     }
 
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`\n⚠️  Port ${PORT} is already in use by another process.`);
+        console.error(`💡 Quick fix: Kill the old process using: kill -9 $(lsof -ti:${PORT})\n`);
+        process.exit(1);
+      } else {
+        console.error('Server error:', err);
+      }
+    });
+
     server.listen(PORT, () => {
       console.log(`====================================================`);
       console.log(`🚀 Campus Event Ticketing Server running on port ${PORT}`);

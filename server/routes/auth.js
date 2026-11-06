@@ -39,20 +39,41 @@ router.post('/login', async (req, res) => {
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { name, usn, email, password, department, role = 'student' } = req.body;
+    let { name, usn, email, password, department, role = 'student' } = req.body;
 
     if (!name || !usn || !email || !password) {
-      return res.status(400).json({ message: 'Name, USN, college email, and password are required.' });
+      return res.status(400).json({ success: false, message: 'Name, USN, college email, and password are all required.' });
+    }
+
+    name = String(name).trim();
+    usn = String(usn).trim().toUpperCase();
+    email = String(email).trim().toLowerCase();
+
+    if (name.length < 2) {
+      return res.status(400).json({ success: false, message: 'Full name must be at least 2 characters.' });
+    }
+
+    if (usn.length < 4) {
+      return res.status(400).json({ success: false, message: 'Valid College USN or ID is required (minimum 4 characters).' });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid college email address.' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters for security.' });
     }
 
     // Check if USN or Email exists
     const existing = await dbService.findUserByUsnOrEmail(usn);
     if (existing) {
-      return res.status(409).json({ message: 'A student account with this USN already exists.' });
+      return res.status(409).json({ success: false, message: 'An account with this USN already exists.' });
     }
     const existingEmail = await dbService.findUserByUsnOrEmail(email);
     if (existingEmail) {
-      return res.status(409).json({ message: 'A student account with this Email already exists.' });
+      return res.status(409).json({ success: false, message: 'An account with this Email already exists.' });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -60,8 +81,8 @@ router.post('/register', async (req, res) => {
 
     const newUser = await dbService.createUser({
       name,
-      usn: usn.toUpperCase(),
-      email: email.toLowerCase(),
+      usn,
+      email,
       password: hashedPassword,
       department: department || 'School of CSE',
       role: role === 'organizer' ? 'organizer' : 'student'
@@ -71,12 +92,13 @@ router.post('/register', async (req, res) => {
     const { password: _, ...safeUser } = newUser;
 
     res.status(201).json({
+      success: true,
       message: 'Registration successful',
       token,
       user: safeUser
     });
   } catch (err) {
-    res.status(500).json({ message: 'Registration failed', error: err.message });
+    res.status(500).json({ success: false, message: 'Registration failed', error: err.message });
   }
 });
 
