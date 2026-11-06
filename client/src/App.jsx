@@ -11,6 +11,7 @@ import { TicketPassModal } from './components/TicketPassModal.jsx';
 import { MyTicketsDrawer } from './components/MyTicketsDrawer.jsx';
 import { OrganizerDashboard } from './components/OrganizerDashboard.jsx';
 import { CreateEventModal } from './components/CreateEventModal.jsx';
+import { EditEventModal } from './components/EditEventModal.jsx';
 import { DoorScannerModal } from './components/DoorScannerModal.jsx';
 import { AttendeesModal } from './components/AttendeesModal.jsx';
 import { AdminAnalytics } from './components/AdminAnalytics.jsx';
@@ -39,6 +40,7 @@ export function App() {
   const [isMyTicketsOpen, setIsMyTicketsOpen] = useState(false);
   const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isConcurrencyModalOpen, setIsConcurrencyModalOpen] = useState(false);
   const [attendeesModalEvent, setAttendeesModalEvent] = useState(null);
@@ -199,6 +201,7 @@ export function App() {
             onOpenCreateEvent={() => setIsCreateEventOpen(true)}
             onOpenScanner={() => setIsScannerOpen(true)}
             onViewAttendees={(ev) => setAttendeesModalEvent(ev)}
+            onEditEvent={(ev) => setEditingEvent(ev)}
             onEventUpdated={(upd) => {
               setEvents((prev) => prev.map((e) => ((e._id || e.id) === (upd._id || upd.id) ? upd : e)));
             }}

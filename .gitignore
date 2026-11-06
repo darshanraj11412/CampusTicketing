@@ -3,3 +3,22 @@ client/node_modules/
 .DS_Store
 .env
 *.log
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build files
+client/dist/
+dist/
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Local database containing demo records
+server/data/db.json
+
+# OS files
+.DS_Store

@@ -9,6 +9,7 @@ import {
   Download, 
   Trash2, 
   Eye, 
+  Edit3,
   ToggleLeft, 
   ToggleRight,
   TrendingUp,
@@ -21,6 +22,7 @@ export const OrganizerDashboard = ({
   onOpenCreateEvent,
   onOpenScanner,
   onViewAttendees,
+  onEditEvent,
   onEventUpdated,
   onEventDeleted
 }) => {
@@ -228,6 +230,15 @@ export const OrganizerDashboard = ({
                         >
                           <Eye size={14} />
                           Roster
+                        </button>
+
+                        <button
+                          onClick={() => onEditEvent(ev)}
+                          className="btn btn-sm btn-outline"
+                          title="Edit Event Details & Capacity"
+                        >
+                          <Edit3 size={14} color="#38bdf8" />
+                          Edit
                         </button>
 
                         <button
