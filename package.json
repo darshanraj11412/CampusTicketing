@@ -12,6 +12,7 @@
     "dev": "concurrently -k -p \"[{name}]\" -n \"SERVER,CLIENT\" -c \"cyan.bold,magenta.bold\" \"npm run dev:server\" \"npm run dev:client\"",
     "build:client": "cd client && npm run build",
     "build": "npm run build:client",
+    "test": "node --test",
     "seed": "node server/seed.js"
   },
   "keywords": [

@@ -109,6 +109,14 @@ In local development, seeded accounts use the password `password123`. Do not use
 
 Self-registration always creates a Student account. Organizer and Admin accounts must be provisioned separately. The interface has no role-switch controls; the API also enforces role and event-ownership checks.
 
+### Authentication & Access Controls
+- Passwords are stored as bcrypt hashes; sign-in and registration never return the password hash.
+- JWTs expire after 12 hours. Production startup requires a configured `JWT_SECRET`.
+- New accounts are always Students. Organizer and Admin capabilities are checked on the server, with organizers restricted to their own events and rosters.
+- Sign-in attempts are throttled per IP and account identifier; registration attempts are throttled per IP. The limiter is process-local, so use a shared store before scaling to multiple server instances.
+- Public WebSocket activity messages contain event activity without exposing attendee names, USNs, or ticket codes.
+- In production, all initially seeded demo accounts use the same `DEMO_ACCOUNT_PASSWORD`. Changing that environment variable does not change passwords on accounts already in MongoDB. For a real deployment, provision unique credentials for each account.
+
 ---
 
 ## 🛠️ How to Run the Project
@@ -177,7 +185,8 @@ FSD-FINAL/
 │   │   ├── checkin.js         # Door scanner verification & duplicate alert
 │   │   └── admin.js           # Platform-wide analytics
 │   ├── middleware/
-│   │   └── auth.js            # Token & role validation guards
+│   │   ├── auth.js            # Token & role validation guards
+│   │   └── authRateLimit.js   # Sign-in and registration throttles
 │   ├── services/
 │   │   └── dbService.js       # Atomic seat locking & database abstraction
 │   ├── data/
@@ -188,7 +197,7 @@ FSD-FINAL/
 ├── client/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Navbar.jsx               # Role switcher ribbon & sync indicator
+│   │   │   ├── Navbar.jsx               # Role-gated navigation & ticket controls
 │   │   │   ├── HeroSection.jsx          # Live campus stats ticker & search
 │   │   │   ├── EventCard.jsx            # Live seat pill & flash animation
 │   │   │   ├── EventGrid.jsx            # Category filter chips & event list
@@ -204,7 +213,7 @@ FSD-FINAL/
 │   │   │   ├── LiveActivityFeed.jsx     # Real-time campus activity ticker
 │   │   │   └── AuthModal.jsx            # Sign In / Sign Up modal
 │   │   ├── context/
-│   │   │   ├── AuthContext.jsx          # Auth state & 1-click role switcher
+│   │   │   ├── AuthContext.jsx          # Server-issued JWT auth state
 │   │   │   └── SocketContext.jsx        # Real-time Socket.IO sync provider
 │   │   ├── utils/
 │   │   │   └── api.js                   # REST API client
@@ -225,14 +234,16 @@ FSD-FINAL/
 ## 🏆 Viva & Evaluation Checklist (Addressing All Presentation Slides)
 - [x] **Slide 1-3:** Problem definition addressed with real-time single source of truth.
 - [x] **Slide 4:** 1-click registrations, hard seat caps enforced upfront, clean queryable records.
-- [x] **Slide 5:** Non-functional requirements fulfilled:
-  - WebSocket live seat updates.
-  - Sub-second confirmation (<1 second measured & displayed on pass).
-  - Race condition prevention with atomic seat lock.
-  - Fully responsive mobile UI for door volunteers.
-  - Role-based authorization: Student vs Organizer vs Admin.
+- [ ] **Slide 5:** Remaining behavior checks for the final demo:
+  - [ ] WebSocket live seat updates.
+  - [ ] Sub-second confirmation (<1 second measured & displayed on pass).
+  - [x] Race condition prevention for seats and atomic duplicate check-in.
+  - [x] Mobile layout checked in Safari at 393 × 852; category chips stay on one line and scroll inside their row.
+  - [x] Role restrictions reviewed in the API routes; demonstrate Student, Organizer, and Admin boundaries during the viva.
 - [x] **Slide 6 & 11:** Full client-server-database loop live with REST API + WebSockets.
 - [x] **Slide 7:** Complete user flows implemented (Student pass booking & Organizer door scanning).
 - [x] **Slide 8:** Database schemas implemented matching `Users`, `Events`, `Registrations`, and `Waitlist`.
 - [x] **Slide 9:** Modern MERN stack with Socket.IO, JWT, and QRCode generation.
 - [x] **Slide 12:** Production-ready full stack platform with CSV export and concurrency simulation lab.
+
+See [the final demo checklist](docs/FINAL-DEMO.md) for a short, repeatable evaluation walkthrough and security checks.

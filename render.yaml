@@ -3,7 +3,7 @@ services:
     name: campus-ticketing
     runtime: node
     plan: free
-    buildCommand: npm ci && npm --prefix client ci && npm --prefix client run build
+    buildCommand: npm install --include=dev && npm --prefix client install --include=dev && npm --prefix client run build
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:

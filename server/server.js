@@ -27,6 +27,10 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
+if (process.env.NODE_ENV === 'production') {
+  // Render forwards client requests through one trusted proxy hop.
+  app.set('trust proxy', 1);
+}
 const allowedOrigins = (process.env.CORS_ORIGINS || '')
   .split(',')
   .map((origin) => origin.trim())
@@ -52,7 +56,7 @@ app.set('io', io);
 
 // Middleware
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '32kb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // REST API Endpoints

@@ -386,6 +386,7 @@ body {
 
   .category-filters .btn {
     flex: 0 0 auto;
+    white-space: nowrap;
   }
 
   .events-grid {

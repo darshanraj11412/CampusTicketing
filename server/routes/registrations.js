@@ -57,7 +57,7 @@ router.post('/', verifyAuth, requireRoles(['student']), async (req, res) => {
 
       io.emit('activity:feed', {
         type: 'registration',
-        text: `⚡ ${req.user.name} (${req.user.usn}) secured a seat for ${updatedEvent.title}!`,
+        text: `A seat was reserved for ${updatedEvent.title}.`,
         eventId: updatedEvent._id || updatedEvent.id,
         seatsLeft: updatedEvent.seatsLeft,
         timestamp: new Date().toISOString()
@@ -94,7 +94,7 @@ router.delete('/:id', verifyAuth, requireRoles(['student']), async (req, res) =>
 
       io.emit('activity:feed', {
         type: 'seat_freed',
-        text: `A seat just opened up for ${updatedEvent.title}! (${updatedEvent.seatsLeft} available)`,
+        text: `A seat just opened up for ${updatedEvent.title}.`,
         eventId: updatedEvent._id || updatedEvent.id,
         timestamp: new Date().toISOString()
       });

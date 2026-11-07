@@ -2,11 +2,12 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import { dbService } from '../services/dbService.js';
 import { generateToken, verifyAuth } from '../middleware/auth.js';
+import { loginRateLimit, registrationRateLimit } from '../middleware/authRateLimit.js';
 
 const router = express.Router();
 
 // POST /api/auth/login
-router.post('/login', async (req, res) => {
+router.post('/login', loginRateLimit, async (req, res) => {
   try {
     const { identifier, password } = req.body;
     if (
@@ -41,7 +42,7 @@ router.post('/login', async (req, res) => {
 });
 
 // POST /api/auth/register
-router.post('/register', async (req, res) => {
+router.post('/register', registrationRateLimit, async (req, res) => {
   try {
     let { name, usn, email, password, department } = req.body;
 

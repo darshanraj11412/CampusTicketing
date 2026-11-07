@@ -36,20 +36,14 @@ router.post('/verify', verifyAuth, requireRoles(['organizer', 'admin']), async (
       if (io) {
         io.emit('checkin:verified', {
           eventId: result.registration.eventId,
-          registrationId: result.registration._id || result.registration.id,
-          ticketCode: result.registration.ticketCode,
           checkedInCount: result.checkedInCount,
-          attendee: {
-            name: result.registration.userName,
-            usn: result.registration.userUsn,
-            eventTitle: result.registration.eventTitle
-          },
+          eventTitle: result.registration.eventTitle,
           checkedInAt: result.registration.checkedInAt
         });
 
         io.emit('activity:feed', {
           type: 'checkin',
-          text: `🎟️ Door Entry Verified: ${result.registration.userName} (${result.registration.userUsn}) checked in for "${result.registration.eventTitle}"!`,
+          text: `A ticket was checked in for ${result.registration.eventTitle}.`,
           timestamp: new Date().toISOString()
         });
       }

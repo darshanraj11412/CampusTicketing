@@ -360,6 +360,13 @@ export const dbService = {
         throw new Error('You do not have permission to check in tickets.');
       }
     };
+    const duplicateResult = (reg) => ({
+      success: false,
+      alreadyCheckedIn: true,
+      checkedInAt: reg.checkedInAt,
+      registration: reg,
+      message: `Ticket ${code} was ALREADY checked in${reg.checkedInAt ? ` at ${new Date(reg.checkedInAt).toLocaleTimeString()}` : ''}!`
+    });
 
     if (getDbMode() === 'mongodb') {
       const reg = await Registration.findOne({ ticketCode: code });
@@ -371,32 +378,33 @@ export const dbService = {
       assertEventAccess(event);
 
       if (reg.checkedIn) {
-        return {
-          success: false,
-          alreadyCheckedIn: true,
-          checkedInAt: reg.checkedInAt,
-          registration: reg,
-          message: `Ticket ${code} was ALREADY checked in at ${new Date(reg.checkedInAt).toLocaleTimeString()}!`
-        };
+        return duplicateResult(reg);
       }
 
-      reg.checkedIn = true;
-      reg.checkedInAt = new Date();
-      if (userId) reg.checkedInBy = userId;
-      await reg.save();
+      const checkedInAt = new Date();
+      const updatedReg = await Registration.findOneAndUpdate(
+        { _id: reg._id, checkedIn: { $ne: true } },
+        { $set: { checkedIn: true, checkedInAt, checkedInBy: userId || null } },
+        { new: true, runValidators: true }
+      );
+      if (!updatedReg) {
+        const currentReg = await Registration.findById(reg._id);
+        if (currentReg?.checkedIn) return duplicateResult(currentReg);
+        throw new Error('Ticket check-in could not be completed. Please try again.');
+      }
 
       // Recalculate event checked-in count
       const checkedInCount = await Registration.countDocuments({
-        eventId: reg.eventId,
+        eventId: updatedReg.eventId,
         checkedIn: true
       });
 
       return {
         success: true,
         alreadyCheckedIn: false,
-        registration: reg,
+        registration: updatedReg,
         checkedInCount,
-        message: `Check-in successful! Welcome, ${reg.userName} (${reg.userUsn}).`
+        message: `Check-in successful! Welcome, ${updatedReg.userName} (${updatedReg.userUsn}).`
       };
     }
 
@@ -414,13 +422,7 @@ export const dbService = {
       assertEventAccess(event);
 
       if (reg.checkedIn) {
-        return {
-          success: false,
-          alreadyCheckedIn: true,
-          checkedInAt: reg.checkedInAt,
-          registration: reg,
-          message: `Ticket ${code} was ALREADY checked in at ${new Date(reg.checkedInAt).toLocaleTimeString()}!`
-        };
+        return duplicateResult(reg);
       }
 
       reg.checkedIn = true;
