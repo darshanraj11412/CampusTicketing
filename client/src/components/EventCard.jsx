@@ -9,6 +9,10 @@ export const EventCard = ({
   onViewTicketClick
 }) => {
   const [justUpdated, setJustUpdated] = useState(false);
+  const fallbackBannerUrl = event.category === 'sports'
+    ? '/images/football-banner-fallback.svg'
+    : '/images/event-banner-fallback.svg';
+  const [bannerSrc, setBannerSrc] = useState(event.bannerUrl || fallbackBannerUrl);
 
   // Flash animation when seats count changes
   useEffect(() => {
@@ -16,6 +20,10 @@ export const EventCard = ({
     const timer = setTimeout(() => setJustUpdated(false), 1200);
     return () => clearTimeout(timer);
   }, [event.seatsLeft]);
+
+  useEffect(() => {
+    setBannerSrc(event.bannerUrl || fallbackBannerUrl);
+  }, [event.bannerUrl, fallbackBannerUrl]);
 
   const getCategoryBadgeClass = (cat) => {
     switch (cat) {
@@ -45,31 +53,56 @@ export const EventCard = ({
       }}
     >
       {/* Event Header Banner / Image */}
-      {event.bannerUrl && (
+      {
         <div style={{
           height: '140px',
           width: '100%',
           position: 'relative',
           overflow: 'hidden'
         }}>
-          <img 
-            src={event.bannerUrl} 
-            alt={event.title}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              transition: 'transform 0.4s ease'
-            }}
-            loading="lazy"
-          />
+          {bannerSrc ? (
+            <img
+              src={bannerSrc}
+              alt={`${event.title} banner`}
+              onError={() => {
+                if (bannerSrc !== fallbackBannerUrl) setBannerSrc(fallbackBannerUrl);
+                else setBannerSrc(null);
+              }}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                transition: 'transform 0.4s ease'
+              }}
+              loading="lazy"
+            />
+          ) : (
+            <div
+              role="img"
+              aria-label={`${event.title} banner unavailable`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '100%',
+                height: '100%',
+                color: '#bae6fd',
+                fontSize: '0.8rem',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                background: 'linear-gradient(135deg, #102a43, #0f172a)'
+              }}
+            >
+              {event.catLabel || event.category} · {event.title}
+            </div>
+          )}
           <div style={{
             position: 'absolute',
             inset: 0,
             background: 'linear-gradient(to top, rgba(15, 23, 42, 0.95) 0%, transparent 80%)'
           }} />
         </div>
-      )}
+      }
 
       {/* Card Content */}
       <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>

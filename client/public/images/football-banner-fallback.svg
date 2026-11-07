@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">Football championship banner</title>
+  <desc id="desc">Illustrated football pitch under stadium lights</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1">
+      <stop stop-color="#10233d"/>
+      <stop offset="1" stop-color="#07111f"/>
+    </linearGradient>
+    <linearGradient id="grass" x2="0" y2="1">
+      <stop stop-color="#16815f"/>
+      <stop offset="1" stop-color="#07503f"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop stop-color="#b9f3ff" stop-opacity=".9"/>
+      <stop offset="1" stop-color="#55cfff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="360" fill="url(#sky)"/>
+  <ellipse cx="170" cy="85" rx="180" ry="130" fill="url(#glow)" opacity=".45"/>
+  <ellipse cx="1030" cy="80" rx="200" ry="140" fill="url(#glow)" opacity=".35"/>
+  <g fill="#f5fbff" opacity=".85">
+    <path d="M90 50h210v10H90zM115 68h160v7H115zM900 50h210v10H900zM925 68h160v7H925z"/>
+    <circle cx="125" cy="48" r="9"/><circle cx="165" cy="48" r="9"/><circle cx="205" cy="48" r="9"/><circle cx="245" cy="48" r="9"/>
+    <circle cx="935" cy="48" r="9"/><circle cx="975" cy="48" r="9"/><circle cx="1015" cy="48" r="9"/><circle cx="1055" cy="48" r="9"/>
+  </g>
+  <path d="M0 225 600 150l600 75v135H0z" fill="url(#grass)"/>
+  <path d="M0 265 600 193l600 72v35L600 226 0 300z" fill="#43bd79" opacity=".22"/>
+  <path d="M0 315 600 244l600 71v45H0z" fill="#b2e6aa" opacity=".09"/>
+  <g fill="none" stroke="#d7fbe7" stroke-opacity=".72" stroke-width="3">
+    <path d="m210 360 53-157h674l53 157M600 166v194"/>
+    <ellipse cx="600" cy="265" rx="95" ry="27"/>
+    <path d="m264 203-18 53h85v-62m605 9 18 53h-85v-62"/>
+    <path d="M0 291h88v48M1200 291h-88v48"/>
+  </g>
+  <g transform="translate(600 268)">
+    <circle r="48" fill="#f7fafc" stroke="#d8e6ef" stroke-width="4"/>
+    <path d="m0-18 17 12-7 20H-10L-17-6zM-17-6l-18-6m52 6 18-6M-10 14l-6 27m26-27 6 27" fill="#16263b" stroke="#16263b" stroke-width="4" stroke-linejoin="round"/>
+  </g>
+  <rect width="1200" height="360" fill="url(#sky)" opacity=".08"/>
+</svg>

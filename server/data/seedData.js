@@ -131,7 +131,7 @@ export const SEED_EVENTS = [
     department: 'Department of Physical Education',
     organizerName: 'Sports Committee',
     status: 'open',
-    bannerUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80',
+    bannerUrl: '/images/football-banner-fallback.svg',
     tags: ['Sports', 'Tournament', 'Football']
   },
   {
