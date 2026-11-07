@@ -291,7 +291,10 @@ export const dbService = {
       db.registrations.unshift(registration);
       saveLocalDb();
 
-      return { registration, updatedEvent: ev };
+      // Snapshot the state while still inside the lock. Returning the mutable
+      // event lets a later concurrent booking change the first response's
+      // seat count before the route publishes it to Socket.IO.
+      return { registration, updatedEvent: { ...ev } };
     });
   },
 
@@ -326,7 +329,7 @@ export const dbService = {
 
       db.registrations.splice(idx, 1);
       saveLocalDb();
-      return { success: true, updatedEvent: ev };
+      return { success: true, updatedEvent: ev ? { ...ev } : ev };
     });
   },
 
