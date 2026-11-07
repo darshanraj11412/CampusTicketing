@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { after, before, test } from 'node:test';
-import { authenticatedFetch, loginAs, startIntegrationServer } from './helpers/integrationServer.js';
+import { authenticatedFetch, loginAs, startIntegrationServer } from '../test-support/integrationServer.js';
 
 const requireClientDependency = createRequire(new URL('../client/package.json', import.meta.url));
 const { io } = requireClientDependency('socket.io-client');

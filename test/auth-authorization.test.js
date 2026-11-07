@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
-import { authenticatedFetch, loginAs, startIntegrationServer } from './helpers/integrationServer.js';
+import { authenticatedFetch, loginAs, startIntegrationServer } from '../test-support/integrationServer.js';
 
 let service;
 let student;

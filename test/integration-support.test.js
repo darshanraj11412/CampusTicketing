@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { startIntegrationServer } from './helpers/integrationServer.js';
+import { startIntegrationServer } from '../test-support/integrationServer.js';
 
 test('application starts against an isolated local test database', async (t) => {
   const service = await startIntegrationServer();
