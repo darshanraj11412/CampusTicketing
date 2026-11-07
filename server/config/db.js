@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, '..', 'data');
-const JSON_DB_FILE = path.join(DATA_DIR, 'db.json');
+const JSON_DB_FILE = path.resolve(process.env.LOCAL_DB_PATH || path.join(DATA_DIR, 'db.json'));
 
 let dbMode = 'json'; // 'mongodb' or 'json'
 
@@ -53,6 +53,13 @@ export const setLocalDb = (data) => {
 export const getDbMode = () => dbMode;
 
 export const connectDB = async () => {
+  if (process.env.DB_MODE === 'json' && process.env.NODE_ENV !== 'production') {
+    dbMode = 'json';
+    loadLocalDb();
+    console.log(`ℹ️  Using local JSON database at ${JSON_DB_FILE}`);
+    return 'json';
+  }
+
   const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/campus_ticketing';
   
   try {
