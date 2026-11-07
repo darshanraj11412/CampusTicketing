@@ -20,9 +20,11 @@ Reviewed the authentication routes, middleware, role-protected APIs, event owner
 - Browser tokens are stored in local storage. The app is a course demonstration and does not include an httpOnly cookie session, account recovery, email verification, or MFA.
 - The public event feed and seat counts are intentionally readable without signing in. Private attendee records remain behind authorization checks.
 
-## Manual authorization checks for the demo
+## Authorization cases verified by isolated API tests
 
 - Student: browse/register/cancel; direct requests to organizer/admin endpoints return `403`.
 - Organizer: create/update/delete own event, view own roster, check in own ticket; accessing another organizer's roster/event/check-in returns `403`.
 - Admin: access analytics and organizer capabilities across events.
 - Guest: public events and health endpoint only; protected routes return `401`.
+
+These cases are exercised in `test/auth-authorization.test.js`, `test/organizer-ownership.test.js`, and `test/qr-checkin.test.js`. The demo walkthrough remains useful to show the UI behavior to evaluators.

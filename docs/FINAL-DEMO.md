@@ -25,3 +25,7 @@ Use the live service at <https://campusticketing.onrender.com>. The deployment s
 - Confirm the repository README and code describe the same role behavior.
 - Be prepared to describe the main data models, atomic seat reservation, JWT flow, organizer ownership rule, and how duplicate check-ins are rejected.
 - Keep production passwords and the MongoDB URI hidden during screen sharing.
+
+## Automated verification completed
+
+Run `npm test` to execute 14 checks against an isolated temporary local database. Coverage includes guest/student/organizer/admin route boundaries, organizer event ownership, privileged-role signup attempts, duplicate registrations, concurrent seat capacity, Socket.IO seat updates observed by a second client, and QR JSON approval followed by duplicate rejection and invalid-code denial. The local loopback booking response measured 23 ms in the verification run; hosted latency can differ and must not be presented as a Render measurement.

@@ -235,11 +235,11 @@ FSD-FINAL/
 - [x] **Slide 1-3:** Problem definition addressed with real-time single source of truth.
 - [x] **Slide 4:** 1-click registrations, hard seat caps enforced upfront, clean queryable records.
 - [ ] **Slide 5:** Remaining behavior checks for the final demo:
-  - [ ] WebSocket live seat updates.
-  - [ ] Sub-second confirmation (<1 second measured & displayed on pass).
-  - [x] Race condition prevention for seats and atomic duplicate check-in.
+  - [x] WebSocket live seat updates verified with a second connected integration-test client.
+  - [x] Sub-second booking confirmation measured at 23 ms on local loopback; the pass UI displays the measured request time. This is not a hosted Render latency measurement.
+  - [x] Concurrent seat reservations stay within capacity; duplicate QR check-in is rejected.
   - [x] Mobile layout checked in Safari at 393 × 852; category chips stay on one line and scroll inside their row.
-  - [x] Role restrictions reviewed in the API routes; demonstrate Student, Organizer, and Admin boundaries during the viva.
+  - [x] Student, Organizer, and Admin API boundaries and event ownership verified with isolated integration tests.
 - [x] **Slide 6 & 11:** Full client-server-database loop live with REST API + WebSockets.
 - [x] **Slide 7:** Complete user flows implemented (Student pass booking & Organizer door scanning).
 - [x] **Slide 8:** Database schemas implemented matching `Users`, `Events`, `Registrations`, and `Waitlist`.
@@ -247,3 +247,5 @@ FSD-FINAL/
 - [x] **Slide 12:** Production-ready full stack platform with CSV export and concurrency simulation lab.
 
 See [the final demo checklist](docs/FINAL-DEMO.md) for a short, repeatable evaluation walkthrough and security checks.
+
+Run `npm test` for the 14 isolated local tests. The integration suite uses a temporary database and does not alter the local or hosted demo data.
