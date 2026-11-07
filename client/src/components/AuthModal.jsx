@@ -3,7 +3,7 @@ import { X, LogIn, UserPlus, Lock, Mail, User, Hash, Building } from 'lucide-rea
 import { useAuth } from '../context/AuthContext.jsx';
 
 export const AuthModal = ({ onClose }) => {
-  const { login, register, switchDemoUser } = useAuth();
+  const { login, register } = useAuth();
   const [tab, setTab] = useState('signin'); // 'signin' or 'signup'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -18,7 +18,6 @@ export const AuthModal = ({ onClose }) => {
     email: '',
     password: '',
     department: 'School of CSE',
-    role: 'student'
   });
 
   const handleSignIn = async (e) => {
@@ -44,19 +43,6 @@ export const AuthModal = ({ onClose }) => {
       onClose();
     } catch (err) {
       setError(err.message || 'Registration failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleQuickDemo = async (usn) => {
-    setLoading(true);
-    setError(null);
-    try {
-      await switchDemoUser(usn);
-      onClose();
-    } catch (err) {
-      setError(err.message || 'Demo login failed');
     } finally {
       setLoading(false);
     }
@@ -163,6 +149,8 @@ export const AuthModal = ({ onClose }) => {
               <input
                 type="password"
                 required
+                minLength={8}
+                maxLength={72}
                 className="input"
                 placeholder="••••••••"
                 value={password}
@@ -190,34 +178,18 @@ export const AuthModal = ({ onClose }) => {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-              <div>
-                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#cbd5e1', display: 'block', marginBottom: '0.25rem' }}>
-                  College USN
-                </label>
-                <input
-                  type="text"
-                  required
-                  className="input"
-                  placeholder="1RUA24SCS0012"
-                  value={regData.usn}
-                  onChange={(e) => setRegData({ ...regData, usn: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#cbd5e1', display: 'block', marginBottom: '0.25rem' }}>
-                  Role
-                </label>
-                <select
-                  className="input"
-                  value={regData.role}
-                  onChange={(e) => setRegData({ ...regData, role: e.target.value })}
-                >
-                  <option value="student">Student</option>
-                  <option value="organizer">Club Organizer</option>
-                </select>
-              </div>
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#cbd5e1', display: 'block', marginBottom: '0.25rem' }}>
+                College USN
+              </label>
+              <input
+                type="text"
+                required
+                className="input"
+                placeholder="1RUA24SCS0012"
+                value={regData.usn}
+                onChange={(e) => setRegData({ ...regData, usn: e.target.value })}
+              />
             </div>
 
             <div>
@@ -241,6 +213,8 @@ export const AuthModal = ({ onClose }) => {
               <input
                 type="password"
                 required
+                minLength={8}
+                maxLength={72}
                 className="input"
                 placeholder="••••••••"
                 value={regData.password}
@@ -254,28 +228,6 @@ export const AuthModal = ({ onClose }) => {
           </form>
         )}
 
-        {/* 1-Click Demo Profiles */}
-        <div style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
-          <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-            DEMO PRE-SEEDED ACCOUNTS (PASSWORD: password123)
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
-            <button
-              onClick={() => handleQuickDemo('1RUA24SCS0012')}
-              className="btn btn-sm btn-secondary"
-              style={{ fontSize: '0.75rem' }}
-            >
-              Arjun (Student)
-            </button>
-            <button
-              onClick={() => handleQuickDemo('organizer@rvu.edu.in')}
-              className="btn btn-sm btn-accent"
-              style={{ fontSize: '0.75rem' }}
-            >
-              Tech Club (Organizer)
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

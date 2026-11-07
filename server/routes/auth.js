@@ -9,18 +9,21 @@ const router = express.Router();
 router.post('/login', async (req, res) => {
   try {
     const { identifier, password } = req.body;
-    if (!identifier || !password) {
+    if (
+      typeof identifier !== 'string' || !identifier.trim() || identifier.length > 254 ||
+      typeof password !== 'string' || !password || Buffer.byteLength(password, 'utf8') > 72
+    ) {
       return res.status(400).json({ message: 'College ID / USN / Email and Password are required.' });
     }
 
     const user = await dbService.findUserByUsnOrEmail(identifier);
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials. User with given USN/Email not found.' });
+      return res.status(401).json({ message: 'Invalid college ID / email or password.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid password. Please check and try again.' });
+      return res.status(401).json({ message: 'Invalid college ID / email or password.' });
     }
 
     const token = generateToken(user);
@@ -32,16 +35,20 @@ router.post('/login', async (req, res) => {
       user: safeUser
     });
   } catch (err) {
-    res.status(500).json({ message: 'Login error', error: err.message });
+    console.error('Login error:', err.message);
+    res.status(500).json({ message: 'Login could not be completed.' });
   }
 });
 
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    let { name, usn, email, password, department, role = 'student' } = req.body;
+    let { name, usn, email, password, department } = req.body;
 
-    if (!name || !usn || !email || !password) {
+    if (
+      typeof name !== 'string' || typeof usn !== 'string' ||
+      typeof email !== 'string' || typeof password !== 'string'
+    ) {
       return res.status(400).json({ success: false, message: 'Name, USN, college email, and password are all required.' });
     }
 
@@ -49,21 +56,26 @@ router.post('/register', async (req, res) => {
     usn = String(usn).trim().toUpperCase();
     email = String(email).trim().toLowerCase();
 
-    if (name.length < 2) {
-      return res.status(400).json({ success: false, message: 'Full name must be at least 2 characters.' });
+    if (name.length < 2 || name.length > 80) {
+      return res.status(400).json({ success: false, message: 'Full name must be 2–80 characters.' });
     }
 
-    if (usn.length < 4) {
-      return res.status(400).json({ success: false, message: 'Valid College USN or ID is required (minimum 4 characters).' });
+    if (usn.length < 4 || usn.length > 32) {
+      return res.status(400).json({ success: false, message: 'College USN or ID must be 4–32 characters.' });
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (email.length > 254 || !emailRegex.test(email)) {
       return res.status(400).json({ success: false, message: 'Please enter a valid college email address.' });
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters for security.' });
+    const passwordBytes = Buffer.byteLength(password, 'utf8');
+    if (password.length < 8 || passwordBytes > 72) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 8 characters and no more than 72 bytes.' });
+    }
+
+    if (department !== undefined && (typeof department !== 'string' || department.length > 120)) {
+      return res.status(400).json({ success: false, message: 'Department must be text of at most 120 characters.' });
     }
 
     // Check if USN or Email exists
@@ -84,8 +96,8 @@ router.post('/register', async (req, res) => {
       usn,
       email,
       password: hashedPassword,
-      department: department || 'School of CSE',
-      role: role === 'organizer' ? 'organizer' : 'student'
+      department: department?.trim() || 'School of CSE',
+      role: 'student'
     });
 
     const token = generateToken(newUser);
@@ -98,26 +110,14 @@ router.post('/register', async (req, res) => {
       user: safeUser
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Registration failed', error: err.message });
+    console.error('Registration error:', err.message);
+    res.status(500).json({ success: false, message: 'Registration could not be completed.' });
   }
 });
 
 // GET /api/auth/me
 router.get('/me', verifyAuth, async (req, res) => {
   res.json({ user: req.user });
-});
-
-// GET /api/auth/demo-accounts (convenience for evaluation presentation)
-router.get('/demo-accounts', (req, res) => {
-  res.json({
-    students: [
-      { name: 'Arjun N', usn: '1RUA24SCS0012', role: 'student', defaultPassword: 'password123' },
-      { name: 'Darshan R', usn: '1RUA24SCS0029', role: 'student', defaultPassword: 'password123' },
-      { name: 'Dakshith Saraf', usn: '1RUA24SCS0028', role: 'student', defaultPassword: 'password123' }
-    ],
-    organizer: { name: 'Tech Club RVU', usn: 'ORG-RVU-TECH', email: 'organizer@rvu.edu.in', role: 'organizer', defaultPassword: 'password123' },
-    admin: { name: 'Dean of Student Affairs', usn: 'ADM-RVU-001', email: 'admin@rvu.edu.in', role: 'admin', defaultPassword: 'password123' }
-  });
 });
 
 export default router;

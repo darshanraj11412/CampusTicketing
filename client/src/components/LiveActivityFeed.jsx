@@ -10,7 +10,7 @@ export const LiveActivityFeed = () => {
   const recentActivities = activityFeed.slice(0, 4);
 
   return (
-    <div style={{
+    <div className="live-activity-feed" style={{
       position: 'fixed',
       bottom: '1.25rem',
       right: '1.25rem',

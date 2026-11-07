@@ -1,7 +1,12 @@
 import jwt from 'jsonwebtoken';
+import 'dotenv/config';
 import { dbService } from '../services/dbService.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'rvu-campus-ticketing-secret-2026';
+const JWT_SECRET = process.env.JWT_SECRET || (
+  process.env.NODE_ENV === 'production' ? null : 'local-development-only-jwt-secret'
+);
+
+if (!JWT_SECRET) throw new Error('JWT_SECRET must be configured before starting in production.');
 
 export const generateToken = (user) => {
   return jwt.sign(
@@ -13,7 +18,7 @@ export const generateToken = (user) => {
       name: user.name
     },
     JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: '12h' }
   );
 };
 
@@ -35,7 +40,7 @@ export const verifyAuth = async (req, res, next) => {
     req.user = user;
     next();
   } catch (err) {
-    return res.status(401).json({ message: 'Invalid or expired token.', error: err.message });
+    return res.status(401).json({ message: 'Invalid or expired token.' });
   }
 };
 
@@ -46,7 +51,7 @@ export const requireRoles = (roles = []) => {
     }
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
-        message: `Forbidden: Access restricted to roles [${roles.join(', ')}]. Your role is '${req.user.role}'.`
+        message: 'You do not have permission to access this resource.'
       });
     }
     next();

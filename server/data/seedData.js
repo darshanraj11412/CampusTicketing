@@ -1,8 +1,19 @@
 import bcrypt from 'bcryptjs';
 
 export const getSeedUsers = async () => {
+  const demoPassword = process.env.DEMO_ACCOUNT_PASSWORD || (
+    process.env.NODE_ENV === 'production' ? null : 'password123'
+  );
+  if (!demoPassword) {
+    throw new Error('Set DEMO_ACCOUNT_PASSWORD before seeding production demo accounts.');
+  }
+  const demoPasswordBytes = Buffer.byteLength(demoPassword, 'utf8');
+  if (demoPasswordBytes < 12 || demoPasswordBytes > 72) {
+    throw new Error('DEMO_ACCOUNT_PASSWORD must be 12–72 bytes long.');
+  }
+
   const salt = await bcrypt.genSalt(10);
-  const defaultPasswordHash = await bcrypt.hash('password123', salt);
+  const defaultPasswordHash = await bcrypt.hash(demoPassword, salt);
 
   return [
     {

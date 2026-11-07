@@ -269,6 +269,152 @@ body {
   color: var(--text-muted);
 }
 
+/* Mobile layout adjustments for the event browsing page. */
+@media (max-width: 640px) {
+  .container {
+    width: 100%;
+    min-width: 0;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .main-navbar {
+    height: auto !important;
+    min-height: 70px;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.75rem !important;
+  }
+
+  .main-navbar > div:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 0.5rem !important;
+  }
+
+  .main-navbar > div:first-child > div:last-child > div:first-child {
+    font-size: 1.05rem !important;
+  }
+
+  .main-navbar > div:first-child > div:last-child > div:last-child {
+    font-size: 0.65rem !important;
+  }
+
+  .main-nav {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .main-nav .btn {
+    padding: 0.55rem 0.7rem;
+    font-size: 0.78rem;
+  }
+
+  .main-navbar > div:last-child {
+    margin-left: auto;
+  }
+
+  .hero-section {
+    width: 100%;
+    min-width: 0;
+    padding: 2rem 0 1.5rem !important;
+  }
+
+  .hero-section > div:first-child {
+    max-width: 100%;
+    line-height: 1.4;
+  }
+
+  .hero-section h1 {
+    font-size: clamp(1.85rem, 8vw, 2.4rem) !important;
+    overflow-wrap: anywhere;
+  }
+
+  .hero-section p {
+    font-size: 0.95rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .hero-stats {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.65rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .hero-stats > .glass-card {
+    width: 100%;
+    min-width: 0;
+    padding: 0.85rem 0.4rem !important;
+  }
+
+  .hero-stats > .glass-card > div:first-child {
+    gap: 0.3rem !important;
+    flex-wrap: wrap;
+  }
+
+  .hero-stats > .glass-card > div:first-child span {
+    font-size: 0.68rem !important;
+  }
+
+  .hero-search {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .hero-search .input {
+    font-size: 0.82rem !important;
+  }
+
+  .category-filters {
+    width: calc(100% + 2rem);
+    min-width: 0;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.15rem 0 0.65rem;
+    margin: 0 -1rem 1.5rem !important;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .category-filters .btn {
+    flex: 0 0 auto;
+  }
+
+  .events-grid {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 1rem !important;
+  }
+
+  .events-grid > * {
+    min-width: 0;
+  }
+
+  .live-activity-feed {
+    left: 1rem;
+    right: 1rem !important;
+    bottom: 1rem;
+    width: auto !important;
+    max-width: 380px;
+    margin-inline: auto;
+  }
+
+  .events-grid h3,
+  .events-grid p,
+  .events-grid span {
+    overflow-wrap: anywhere;
+  }
+}
+
 /* Modals & Backdrop */
 .modal-backdrop {
   position: fixed;

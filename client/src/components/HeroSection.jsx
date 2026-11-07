@@ -12,7 +12,7 @@ export const HeroSection = ({
   const totalSeatsAvailable = events.reduce((sum, e) => sum + (e.seatsLeft || 0), 0);
 
   return (
-    <div style={{
+    <div className="hero-section" style={{
       padding: '3rem 0 2rem',
       position: 'relative',
       textAlign: 'center'
@@ -67,7 +67,7 @@ export const HeroSection = ({
       </p>
 
       {/* Live Campus Stats Strip */}
-      <div style={{
+      <div className="hero-stats" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
         gap: '1rem',
@@ -120,7 +120,7 @@ export const HeroSection = ({
       </div>
 
       {/* Global Search Bar */}
-      <div style={{
+      <div className="hero-search" style={{
         maxWidth: '560px',
         margin: '0 auto',
         position: 'relative'

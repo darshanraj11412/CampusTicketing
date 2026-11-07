@@ -21,13 +21,6 @@ export const AuthProvider = ({ children }) => {
           setAuthToken(null);
           setUser(null);
         }
-      } else {
-        // Default auto-login to Arjun N (student demo) for effortless out-of-the-box review
-        try {
-          await switchDemoUser('1RUA24SCS0012');
-        } catch (e) {
-          // Ignore
-        }
       }
       setLoading(false);
     };
@@ -66,19 +59,6 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  // 1-Click Demo Switcher for Evaluation
-  const switchDemoUser = async (identifier) => {
-    try {
-      const data = await api.login({ identifier, password: 'password123' });
-      setAuthToken(data.token);
-      setUser(data.user);
-      return data.user;
-    } catch (err) {
-      console.error('Demo switch failed:', err.message);
-      throw err;
-    }
-  };
-
   return (
     <AuthContext.Provider
       value={{
@@ -89,8 +69,7 @@ export const AuthProvider = ({ children }) => {
         role: user?.role || 'guest',
         login,
         register,
-        logout,
-        switchDemoUser
+        logout
       }}
     >
       {children}

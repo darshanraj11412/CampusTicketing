@@ -6,8 +6,13 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { connectDB, getLocalDb, getDbMode } from './config/db.js';
+import { connectDB, getLocalDb, getDbMode, saveLocalDb } from './config/db.js';
 import { runSeed } from './seed.js';
+import { SEED_EVENTS } from './data/seedData.js';
+import User from './models/User.js';
+import Event from './models/Event.js';
+import Registration from './models/Registration.js';
+import Waitlist from './models/Waitlist.js';
 
 import authRoutes from './routes/auth.js';
 import eventRoutes from './routes/events.js';
@@ -22,20 +27,31 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
+const allowedOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const corsOrigin = (origin, callback) => {
+  if (!origin || process.env.NODE_ENV !== 'production' || allowedOrigins.includes(origin)) {
+    return callback(null, true);
+  }
+  return callback(null, false);
+};
+const corsOptions = {
+  origin: corsOrigin,
+  methods: ['GET', 'POST', 'PUT', 'DELETE']
+};
 
 // Enable Socket.IO with CORS for real-time live seat counts & check-in feed
 const io = new Server(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE']
-  }
+  cors: corsOptions
 });
 
 // Attach io instance to express app so routes can broadcast events
 app.set('io', io);
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -121,13 +137,43 @@ const PORT = process.env.PORT || 5000;
 // Initialize Server
 const startServer = async () => {
   try {
-    await connectDB();
-    
-    // Auto-seed if local DB is empty
-    const db = getLocalDb();
-    if (!db.events || db.events.length === 0) {
-      console.log('Database empty. Running initial seed...');
-      await runSeed();
+    const mode = await connectDB();
+
+    // Only seed when every collection/store is empty. In particular, do not
+    // infer MongoDB emptiness from the unused local JSON cache.
+    let isDatabaseEmpty;
+    if (mode === 'mongodb') {
+      const [users, events, registrations, waitlists] = await Promise.all([
+        User.countDocuments(),
+        Event.countDocuments(),
+        Registration.countDocuments(),
+        Waitlist.countDocuments()
+      ]);
+      isDatabaseEmpty = users + events + registrations + waitlists === 0;
+    } else {
+      const db = getLocalDb();
+      const organizer = db.users?.find((user) => user.role === 'organizer');
+      if (organizer) {
+        const seededTitles = new Set(SEED_EVENTS.map((event) => event.title));
+        let ownershipUpdated = false;
+        db.events = (db.events || []).map((event) => {
+          if (seededTitles.has(event.title) && !event.organizerId) {
+            ownershipUpdated = true;
+            return { ...event, organizerId: organizer._id || organizer.id };
+          }
+          return event;
+        });
+        if (ownershipUpdated) saveLocalDb();
+      }
+      isDatabaseEmpty = ![db.users, db.events, db.registrations, db.waitlists]
+        .some((collection) => collection?.length);
+    }
+
+    if (isDatabaseEmpty) {
+      console.log('Database is empty. Adding initial seed data...');
+      await runSeed({ mode });
+    } else {
+      console.log('Database contains existing data. Startup seeding skipped.');
     }
 
     server.on('error', (err) => {

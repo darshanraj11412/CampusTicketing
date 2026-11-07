@@ -45,6 +45,14 @@ export function App() {
   const [isConcurrencyModalOpen, setIsConcurrencyModalOpen] = useState(false);
   const [attendeesModalEvent, setAttendeesModalEvent] = useState(null);
 
+  useEffect(() => {
+    const organizerViewAllowed = user?.role === 'organizer' || user?.role === 'admin';
+    if ((activeView === 'organizer' && !organizerViewAllowed) ||
+        (activeView === 'admin' && user?.role !== 'admin')) {
+      setActiveView('events');
+    }
+  }, [activeView, user?.role]);
+
   // Load initial events
   const loadEvents = async () => {
     try {
@@ -195,7 +203,7 @@ export function App() {
           </>
         )}
 
-        {activeView === 'organizer' && (
+        {activeView === 'organizer' && (user?.role === 'organizer' || user?.role === 'admin') && (
           <OrganizerDashboard
             events={events}
             onOpenCreateEvent={() => setIsCreateEventOpen(true)}
@@ -211,7 +219,7 @@ export function App() {
           />
         )}
 
-        {activeView === 'admin' && (
+        {activeView === 'admin' && user?.role === 'admin' && (
           <AdminAnalytics events={events} />
         )}
       </main>
@@ -281,7 +289,23 @@ export function App() {
           }}
         />
       )}
-
+      
+{editingEvent && (
+  <EditEventModal
+    event={editingEvent}
+    onClose={() => setEditingEvent(null)}
+    onEventUpdated={(updatedEvent) => {
+      setEvents((prev) =>
+        prev.map((e) =>
+          (e._id || e.id) === (updatedEvent._id || updatedEvent.id)
+            ? updatedEvent
+            : e
+        )
+      );
+      setEditingEvent(null);
+    }}
+  />
+)}
       {isScannerOpen && (
         <DoorScannerModal
           onClose={() => setIsScannerOpen(false)}

@@ -5,7 +5,7 @@ import { verifyAuth, requireRoles } from '../middleware/auth.js';
 const router = express.Router();
 
 // GET /api/admin/stats - Platform-wide analytics
-router.get('/stats', verifyAuth, requireRoles(['admin', 'organizer']), async (req, res) => {
+router.get('/stats', verifyAuth, requireRoles(['admin']), async (req, res) => {
   try {
     const stats = await dbService.getAdminStats();
     res.json(stats);

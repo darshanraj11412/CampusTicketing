@@ -347,14 +347,28 @@ export const dbService = {
   },
 
   // ----------------- DOOR CHECK-IN (SLIDE 3, 5, 7) -----------------
-  async checkInTicket({ ticketCode, organizerId }) {
+  async checkInTicket({ ticketCode, user }) {
     const code = ticketCode.trim().toUpperCase();
+    const userId = user?._id || user?.id;
+
+    const assertEventAccess = (event) => {
+      if (user?.role === 'organizer' &&
+          (!event?.organizerId || String(event.organizerId) !== String(userId))) {
+        throw new Error('Organizers can only check in tickets for their own events.');
+      }
+      if (user?.role !== 'organizer' && user?.role !== 'admin') {
+        throw new Error('You do not have permission to check in tickets.');
+      }
+    };
 
     if (getDbMode() === 'mongodb') {
       const reg = await Registration.findOne({ ticketCode: code });
       if (!reg) {
         throw new Error(`Invalid ticket code: "${code}". No matching registration found.`);
       }
+
+      const event = await Event.findById(reg.eventId);
+      assertEventAccess(event);
 
       if (reg.checkedIn) {
         return {
@@ -368,7 +382,7 @@ export const dbService = {
 
       reg.checkedIn = true;
       reg.checkedInAt = new Date();
-      if (organizerId) reg.checkedInBy = organizerId;
+      if (userId) reg.checkedInBy = userId;
       await reg.save();
 
       // Recalculate event checked-in count
@@ -396,6 +410,9 @@ export const dbService = {
         throw new Error(`Invalid ticket code: "${code}". No matching registration found.`);
       }
 
+      const event = db.events.find((item) => item._id === reg.eventId || item.id === reg.eventId);
+      assertEventAccess(event);
+
       if (reg.checkedIn) {
         return {
           success: false,
@@ -408,7 +425,7 @@ export const dbService = {
 
       reg.checkedIn = true;
       reg.checkedInAt = new Date().toISOString();
-      if (organizerId) reg.checkedInBy = organizerId;
+      if (userId) reg.checkedInBy = userId;
 
       const checkedInCount = db.registrations.filter(
         (r) => r.eventId === reg.eventId && r.checkedIn

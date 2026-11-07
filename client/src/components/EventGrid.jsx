@@ -25,7 +25,7 @@ export const EventGrid = ({
   return (
     <section style={{ paddingBottom: '4rem' }}>
       {/* Category Filter Chips Bar */}
-      <div style={{
+      <div className="category-filters" style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -63,7 +63,7 @@ export const EventGrid = ({
           </p>
         </div>
       ) : (
-        <div style={{
+        <div className="events-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
           gap: '1.5rem'

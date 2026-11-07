@@ -16,7 +16,10 @@ router.post('/verify', verifyAuth, requireRoles(['organizer', 'admin']), async (
     if (typeof ticketCode === 'string' && ticketCode.trim().startsWith('{')) {
       try {
         const parsed = JSON.parse(ticketCode);
-        if (parsed.ticketCode) ticketCode = parsed.ticketCode;
+        const codeEntry = Object.entries(parsed).find(
+          ([key]) => key.toLowerCase() === 'ticketcode'
+        );
+        if (typeof codeEntry?.[1] === 'string') ticketCode = codeEntry[1];
       } catch (e) {
         // Continue with raw string
       }
@@ -24,7 +27,7 @@ router.post('/verify', verifyAuth, requireRoles(['organizer', 'admin']), async (
 
     const result = await dbService.checkInTicket({
       ticketCode,
-      organizerId: req.user._id || req.user.id
+      user: req.user
     });
 
     if (result.success && !result.alreadyCheckedIn) {

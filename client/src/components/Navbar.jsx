@@ -1,17 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { useSocket } from '../context/SocketContext.jsx';
 import { 
   Ticket, 
   LayoutDashboard, 
-  ShieldCheck, 
+  ShieldCheck,
   Zap, 
   LogOut, 
   LogIn, 
-  User, 
-  Wifi, 
-  WifiOff,
-  Sparkles,
   QrCode
 } from 'lucide-react';
 
@@ -24,20 +19,7 @@ export const Navbar = ({
   openConcurrencyModal,
   openScannerModal
 }) => {
-  const { user, isAuthenticated, logout, switchDemoUser } = useAuth();
-  const { isConnected } = useSocket();
-  const [switching, setSwitching] = useState(false);
-
-  const handleDemoSwitch = async (id) => {
-    setSwitching(true);
-    try {
-      await switchDemoUser(id);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSwitching(false);
-    }
-  };
+  const { user, isAuthenticated, logout } = useAuth();
 
   return (
     <header style={{
@@ -49,91 +31,8 @@ export const Navbar = ({
       WebkitBackdropFilter: 'blur(16px)',
       borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
     }}>
-      {/* Demo Switcher Ribbon (Slide 1 & Slide 7 helper for viva) */}
-      <div style={{
-        backgroundColor: '#0f172a',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-        padding: '0.35rem 1.5rem',
-        fontSize: '0.75rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '0.5rem'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#94a3b8' }}>
-          <span style={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            gap: '0.3rem',
-            color: isConnected ? '#34d399' : '#f43f5e',
-            fontWeight: 600
-          }}>
-            {isConnected ? <Wifi size={13} /> : <WifiOff size={13} />}
-            {isConnected ? 'WebSocket Sync Active' : 'Connecting WebSocket...'}
-          </span>
-          <span>•</span>
-          <span style={{ color: '#cbd5e1' }}>RV University CS3301 · Team 8</span>
-        </div>
-
-        {/* 1-Click Role Switcher */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
-          <span style={{ color: '#64748b', fontSize: '0.7rem', fontWeight: 600 }}>SWITCH ROLE:</span>
-          
-          <button 
-            onClick={() => handleDemoSwitch('1RUA24SCS0012')} 
-            disabled={switching}
-            className={`btn btn-sm ${user?.usn === '1RUA24SCS0012' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
-          >
-            Student (Arjun)
-          </button>
-
-          <button 
-            onClick={() => handleDemoSwitch('1RUA24SCS0029')} 
-            disabled={switching}
-            className={`btn btn-sm ${user?.usn === '1RUA24SCS0029' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
-          >
-            Student (Darshan)
-          </button>
-
-          <button 
-            onClick={() => handleDemoSwitch('organizer@rvu.edu.in')} 
-            disabled={switching}
-            className={`btn btn-sm ${user?.role === 'organizer' ? 'btn-accent' : 'btn-secondary'}`}
-            style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
-          >
-            Organizer (Club Lead)
-          </button>
-
-          <button 
-            onClick={() => handleDemoSwitch('admin@rvu.edu.in')} 
-            disabled={switching}
-            className={`btn btn-sm ${user?.role === 'admin' ? 'btn-success' : 'btn-secondary'}`}
-            style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
-          >
-            Admin (Dean)
-          </button>
-
-          <button
-            onClick={openConcurrencyModal}
-            className="btn btn-sm btn-outline"
-            style={{ 
-              padding: '0.2rem 0.5rem', 
-              fontSize: '0.7rem',
-              color: '#f59e0b',
-              borderColor: 'rgba(245, 158, 11, 0.4)'
-            }}
-            title="Test atomic concurrency & race condition protection"
-          >
-            <Zap size={12} /> Concurrency Lab
-          </button>
-        </div>
-      </div>
-
       {/* Main Navbar */}
-      <div className="container" style={{
+      <div className="container main-navbar" style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -180,7 +79,7 @@ export const Navbar = ({
         </div>
 
         {/* Center Nav Links */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <nav className="main-nav" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <button
             onClick={() => setActiveView('events')}
             className={`btn ${activeView === 'events' ? 'btn-secondary' : 'btn-outline'}`}
@@ -216,6 +115,16 @@ export const Navbar = ({
                 {ticketCount}
               </span>
             )}
+          </button>
+
+          <button
+            onClick={openConcurrencyModal}
+            className="btn btn-sm btn-outline"
+            style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.4)' }}
+            title="Test atomic concurrency and race condition protection"
+          >
+            <Zap size={14} />
+            Concurrency Lab
           </button>
 
           {/* Organizer Link */}
@@ -264,7 +173,10 @@ export const Navbar = ({
                 </div>
               </div>
               <button 
-                onClick={logout} 
+                onClick={() => {
+                  logout();
+                  openAuthModal();
+                }}
                 className="btn btn-outline btn-sm"
                 title="Log Out"
               >

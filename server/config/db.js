@@ -64,6 +64,10 @@ export const connectDB = async () => {
     console.log('✅ MongoDB Connected successfully (Mongoose ODM active)');
     return 'mongodb';
   } catch (err) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('MongoDB connection failed in production; refusing to start with local JSON storage.');
+    }
+
     dbMode = 'json';
     console.log('ℹ️  MongoDB not reachable on localhost/provided URI.');
     console.log('⚡ Switched to Built-in Zero-Config Persistent Local DB Engine (ACID-safe).');

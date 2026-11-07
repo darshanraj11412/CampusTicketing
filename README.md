@@ -41,7 +41,7 @@ A full-stack, real-time web application where:
        ┌────────────────────────────────────────────────────────┐
        │                    DATABASE LAYER                      │
        │   • Primary: MongoDB (Mongoose ODM)                    │
-       │   • Fallback: Built-in ACID Zero-Config Store          │
+       │   • Local Development Fallback: Persistent JSON        │
        │   • Collections: Users, Events, Registrations, Waitlist│
        └────────────────────────────────────────────────────────┘
 ```
@@ -93,19 +93,21 @@ A full-stack, real-time web application where:
 
 ---
 
-## 🔑 Demo Accounts (For Viva / Evaluation)
+## 🔑 Local Demo Accounts (Development Only)
 
 The app comes pre-seeded with demo accounts matching RV University:
 
-| Persona | Name | USN / Email | Password | Role |
-| :--- | :--- | :--- | :--- | :--- |
-| **Student 1** | Arjun N | `1RUA24SCS0012` | `password123` | `student` |
-| **Student 2** | Darshan R | `1RUA24SCS0029` | `password123` | `student` |
-| **Student 3** | Dakshith Saraf | `1RUA24SCS0028` | `password123` | `student` |
-| **Club Organizer** | Tech Club RVU | `organizer@rvu.edu.in` | `password123` | `organizer` |
-| **Campus Dean** | Dean of Student Affairs | `admin@rvu.edu.in` | `password123` | `admin` |
+| Persona | Name | USN / Email | Role |
+| :--- | :--- | :--- | :--- |
+| **Student 1** | Arjun N | `1RUA24SCS0012` | `student` |
+| **Student 2** | Darshan R | `1RUA24SCS0029` | `student` |
+| **Student 3** | Dakshith Saraf | `1RUA24SCS0028` | `student` |
+| **Club Organizer** | Tech Club RVU | `organizer@rvu.edu.in` | `organizer` |
+| **Campus Dean** | Dean of Student Affairs | `admin@rvu.edu.in` | `admin` |
 
-> 💡 **Quick Switcher:** You can switch between any of these roles with **1 click** using the top demo bar in the navbar!
+In local development, seeded accounts use the password `password123`. Do not use this shared development password in production. Production seeding requires a unique `DEMO_ACCOUNT_PASSWORD` supplied through the deployment environment.
+
+Self-registration always creates a Student account. Organizer and Admin accounts must be provisioned separately. The interface has no role-switch controls; the API also enforces role and event-ownership checks.
 
 ---
 
@@ -115,7 +117,7 @@ The app comes pre-seeded with demo accounts matching RV University:
 - Node.js (v18 or higher)
 - npm (v9 or higher)
 
-### 2. Quick Start (Production Mode)
+### 2. Quick Start (Local Mode)
 ```bash
 # 1. Install root & client dependencies
 npm install
@@ -137,8 +139,22 @@ npm run dev
 - Vite React client runs on `http://localhost:3000` (auto-proxies API and WebSockets to 5000)
 
 ### 4. Database Configuration
-- **MongoDB Mode (Automatic):** If MongoDB is running on `mongodb://127.0.0.1:27017` or `MONGODB_URI` is provided in `.env`, the server connects via Mongoose.
-- **Zero-Config Persistent Mode (Automatic Fallback):** If MongoDB is not running, the application gracefully and seamlessly runs with its internal ACID-safe persistent JSON database in `server/data/db.json` so evaluators never encounter database startup errors!
+- **Local development:** The server uses MongoDB at `mongodb://127.0.0.1:27017/campus_ticketing` or `MONGODB_URI`. If MongoDB is unavailable outside production, it falls back to `server/data/db.json`.
+- **Production:** Set `MONGODB_URI`; the server refuses to start if MongoDB is unavailable. It never falls back to local JSON in production.
+- Initial seed data is added only when the active database is empty. Seeding no longer clears existing records.
+
+### 5. Production Deployment (Render + MongoDB Atlas)
+
+The repository includes a Render Blueprint at [`render.yaml`](render.yaml). To deploy:
+
+1. Create a MongoDB Atlas database and copy its application connection string.
+2. In Render, create a Blueprint from the GitHub repository below and connect the `main` branch.
+3. Set the prompted `MONGODB_URI` and a unique `DEMO_ACCOUNT_PASSWORD` (at least 12 characters). Render generates `JWT_SECRET` for the service.
+4. Wait for the `/api/health` check to pass, then open the Render service URL and verify sign-in, student registration, organizer ownership, admin-only access, ticket booking, and QR check-in.
+
+If the frontend is hosted on a separate origin, set `CORS_ORIGINS` to its exact HTTPS origin. Do not commit `.env` files or production secrets. Existing seeded accounts are not modified by startup seeding; change their passwords before using an already-populated database in production.
+
+GitHub repository: [CampusTicketing](https://github.com/darshanraj11412/CampusTicketing)
 
 ---
 
@@ -167,7 +183,7 @@ FSD-FINAL/
 │   ├── data/
 │   │   ├── seedData.js        # RV University Phase 1 events & accounts
 │   │   └── db.json            # Persistent storage file
-│   ├── seed.js                # Database re-seeding script
+│   ├── seed.js                # Additive, non-destructive initial seeding
 │   └── server.js              # Express app + Socket.IO server + static serving
 ├── client/
 │   ├── src/
@@ -199,6 +215,7 @@ FSD-FINAL/
 │   └── vite.config.js
 ├── legacy-phase1/
 │   └── app.js                 # Original Phase 1 vanilla JS prototype preserved
+├── render.yaml                # Render web service and required secrets
 ├── package.json
 └── README.md
 ```

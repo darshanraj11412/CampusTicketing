@@ -46,7 +46,25 @@ export const DoorScannerModal = ({ onClose, onScanSuccess }) => {
   const quickTestCodes = ['VEN-7429', 'VEN-1001', 'VEN-9999'];
 
   const handleVerify = async (codeToVerify) => {
-    const code = (codeToVerify || inputCode).trim().toUpperCase();
+    const rawCode = (codeToVerify || inputCode).trim();
+    let code = rawCode;
+
+    // QR passes may contain a JSON payload; accept ticketCode or TICKETCODE.
+    if (rawCode.startsWith('{')) {
+      try {
+        const payload = JSON.parse(rawCode);
+        const ticketCodeKey = Object.keys(payload).find(
+          (key) => key.toLowerCase() === 'ticketcode'
+        );
+        if (ticketCodeKey && typeof payload[ticketCodeKey] === 'string') {
+          code = payload[ticketCodeKey].trim();
+        }
+      } catch (e) {
+        // Let the verification API reject malformed QR data as an invalid code.
+      }
+    }
+
+    code = code.toUpperCase();
     if (!code) return;
 
     setLoading(true);

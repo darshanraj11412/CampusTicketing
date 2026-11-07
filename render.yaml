@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: campus-ticketing
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm --prefix client ci && npm --prefix client run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGODB_URI
+        sync: false
+      - key: DEMO_ACCOUNT_PASSWORD
+        sync: false

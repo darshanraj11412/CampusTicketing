@@ -17,6 +17,14 @@ router.get('/my', verifyAuth, async (req, res) => {
 // GET /api/registrations/event/:eventId - Organizer roster of attendees
 router.get('/event/:eventId', verifyAuth, requireRoles(['organizer', 'admin']), async (req, res) => {
   try {
+    const event = await dbService.getEventById(req.params.eventId);
+    if (!event) return res.status(404).json({ message: 'Event not found.' });
+
+    if (req.user.role === 'organizer' &&
+        (!event.organizerId || String(event.organizerId) !== String(req.user._id || req.user.id))) {
+      return res.status(403).json({ message: 'You can only view attendees for your own events.' });
+    }
+
     const list = await dbService.getEventRegistrations(req.params.eventId);
     res.json(list);
   } catch (err) {
@@ -25,7 +33,7 @@ router.get('/event/:eventId', verifyAuth, requireRoles(['organizer', 'admin']), 
 });
 
 // POST /api/registrations - Register for an event (ATOMIC LOCK)
-router.post('/', verifyAuth, async (req, res) => {
+router.post('/', verifyAuth, requireRoles(['student']), async (req, res) => {
   try {
     const { eventId } = req.body;
     if (!eventId) {
@@ -68,7 +76,7 @@ router.post('/', verifyAuth, async (req, res) => {
 });
 
 // DELETE /api/registrations/:id - Cancel registration (returns seat to pool)
-router.delete('/:id', verifyAuth, async (req, res) => {
+router.delete('/:id', verifyAuth, requireRoles(['student']), async (req, res) => {
   try {
     const { updatedEvent } = await dbService.cancelRegistration({
       registrationId: req.params.id,
