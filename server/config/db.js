@@ -58,12 +58,23 @@ export const connectDB = async () => {
   try {
     console.log(`Connecting to MongoDB at: ${mongoUri.replace(/:([^@]+)@/, ':****@')} ...`);
     await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 2000 // Fast fail to fallback if mongod not running
+      // Atlas connections can take several seconds to resolve and negotiate TLS.
+      serverSelectionTimeoutMS: 15000
     });
     dbMode = 'mongodb';
     console.log('✅ MongoDB Connected successfully (Mongoose ODM active)');
     return 'mongodb';
   } catch (err) {
+    const safeMessage = String(err.message || err).replace(
+      /(mongodb(?:\+srv)?:\/\/)[^@]+@/gi,
+      '$1[redacted]@'
+    );
+    console.error('MongoDB connection diagnostic:', {
+      name: err.name,
+      code: err.code || err.cause?.code || 'unavailable',
+      message: safeMessage
+    });
+
     if (process.env.NODE_ENV === 'production') {
       throw new Error('MongoDB connection failed in production; refusing to start with local JSON storage.');
     }
