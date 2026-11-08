@@ -13,7 +13,8 @@
     "build:client": "cd client && npm run build",
     "build": "npm run build:client",
     "test": "node --test --test-concurrency=1",
-    "seed": "node server/seed.js"
+    "seed": "node server/seed.js",
+    "reset:demo-passwords": "node server/resetDemoPasswords.js"
   },
   "keywords": [
     "campus",
