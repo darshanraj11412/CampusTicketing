@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 
 import { connectDB, getLocalDb, getDbMode, saveLocalDb } from './config/db.js';
 import { runSeed } from './seed.js';
+import { resetSeededDemoPasswordsIfRequested } from './services/demoPasswordReset.js';
 import { SEED_EVENTS } from './data/seedData.js';
 import User from './models/User.js';
 import Event from './models/Event.js';
@@ -142,6 +143,7 @@ const PORT = process.env.PORT || 5000;
 const startServer = async () => {
   try {
     const mode = await connectDB();
+    await resetSeededDemoPasswordsIfRequested(mode);
 
     // Only seed when every collection/store is empty. In particular, do not
     // infer MongoDB emptiness from the unused local JSON cache.
